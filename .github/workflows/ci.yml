@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feature-**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12" # same as the Dockerfile
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest -q
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t university-api-gateway:ci .
+
+      - name: Start container and check it routes
+        run: |
+          docker run -d --name gateway -p 8000:8000 \
+            -e IDENTITY_SERVICE_URL=http://127.0.0.1:9 \
+            university-api-gateway:ci
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:8000/health; then break; fi
+            sleep 1
+          done
+          curl -fsS http://localhost:8000/health
+          curl -fsS http://localhost:8000/gateway/routes > /dev/null
+          # A protected route without a token must be refused by the gateway itself
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/api/v1/auth/me)" = "401"
+          # A service with no URL must answer 404 ROUTE_NOT_FOUND
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/api/v1/events)" = "404"
+
+      - name: Show container logs
+        if: always()
+        run: docker logs gateway || true

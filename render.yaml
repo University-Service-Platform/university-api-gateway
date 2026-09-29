@@ -1,0 +1,44 @@
+# Render Blueprint for the API Gateway (no database, no secrets).
+# Render dashboard -> New -> Blueprint -> pick this repository. Steps: docs/DEPLOY_RENDER.md
+#
+# Service URLs marked "sync: false" are asked for once, when the Blueprint is created.
+# Leave a service empty until that team deploys; its routes answer 404 until then.
+# Add or change them later under the service's Environment page.
+
+services:
+  - type: web
+    name: university-api-gateway
+    runtime: docker
+    plan: free
+    region: singapore          # same region as the Identity Service
+    branch: main
+    autoDeployTrigger: commit
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production      # refuses to start without IDENTITY_SERVICE_URL
+      - key: PORT
+        value: "8000"
+      - key: IDENTITY_SERVICE_URL
+        value: https://university-identity-service.onrender.com
+      - key: DIRECTORY_SERVICE_URL
+        sync: false
+      - key: FACILITY_SERVICE_URL
+        sync: false
+      - key: RESERVATION_SERVICE_URL
+        sync: false
+      - key: SERVICE_REQUEST_SERVICE_URL
+        sync: false
+      - key: WORK_ORDER_SERVICE_URL
+        sync: false
+      - key: GROUP8_SERVICE_URL
+        sync: false
+      # The shared frontend's URL, e.g. https://university-services-frontend.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: UPSTREAM_READ_TIMEOUT_SECONDS
+        value: "90"
+      - key: LOG_LEVEL
+        value: INFO
