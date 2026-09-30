@@ -52,6 +52,9 @@ def _versioned(service: str, *resources: str) -> List[Route]:
 ROUTES: List[Route] = [
     # ---- Identity: public endpoints
     Route("identity", "/api/v1/auth/login", public=True, methods=frozenset({"POST"})),
+    # Forgot password: used while signed out
+    Route("identity", "/api/v1/auth/forgot-password", public=True, methods=frozenset({"POST"})),
+    Route("identity", "/api/v1/auth/reset-password", public=True, methods=frozenset({"POST"})),
     Route("identity", "/.well-known/jwks.json", public=True, methods=frozenset({"GET", "HEAD"})),
 
     # ---- Directory: user checks under the path Identity also uses. Must come before Identity's
