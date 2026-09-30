@@ -111,3 +111,29 @@ def test_oversized_body_is_413(platform):
     assert response.status_code == 413
     assert response.json()["error"]["code"] == "PAYLOAD_TOO_LARGE"
     assert platform.requests == []
+
+
+def test_services_are_only_asked_for_encodings_the_gateway_can_decode(gateway, platform):
+    """Regression: Render answered Accept-Encoding: br with Brotli, which reached the browser garbled."""
+    headers = gateway.get(URL, headers={**bearer(), "Accept-Encoding": "br"}).json()["headers"]
+    assert headers["accept-encoding"] == "gzip, deflate"
+
+
+def test_gzip_responses_are_decoded(gateway, platform):
+    import gzip, json
+    body = json.dumps({"success": True, "data": {"ok": 1}}).encode()
+    platform.override["identity"] = lambda request: httpx.Response(
+        200, content=gzip.compress(body), headers={"Content-Encoding": "gzip", "Content-Type": "application/json"})
+    response = gateway.get(URL, headers={**bearer(), "Accept-Encoding": "identity"})
+    assert response.json() == {"success": True, "data": {"ok": 1}}
+    assert "content-encoding" not in response.headers
+
+
+def test_undecodable_encodings_pass_through_with_their_header(gateway, platform):
+    brotli_bytes = bytes([0x8B, 0x05, 0x80]) + b"compressed"
+    platform.override["identity"] = lambda request: httpx.Response(
+        200, content=brotli_bytes, headers={"Content-Encoding": "br"})
+    response = gateway.get(URL, headers={**bearer(), "Accept-Encoding": "identity"})
+    # Unchanged bytes plus the header, so the browser (which asked for br) can decode them itself
+    assert response.headers["content-encoding"] == "br"
+    assert response.content == brotli_bytes

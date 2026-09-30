@@ -21,6 +21,11 @@ HOP_BY_HOP = {
 # The gateway answers CORS for the whole platform; services' own CORS headers would conflict
 _CORS_PREFIX = "access-control-"
 
+# Response encodings the HTTP client decodes itself. Services are only asked for these, because
+# hosts such as Render otherwise answer with Brotli, which the client would pass on still compressed.
+UPSTREAM_ACCEPT_ENCODING = "gzip, deflate"
+_DECODED_ENCODINGS = {"gzip", "deflate", "identity"}
+
 
 def raw_path(request: Request) -> str:
     """
@@ -43,12 +48,16 @@ def forward_headers(request: Request, request_id: str) -> Dict[str, str]:
     headers["x-forwarded-proto"] = request.headers.get("x-forwarded-proto", request.url.scheme)
     headers["x-forwarded-host"] = request.headers.get("x-forwarded-host", request.headers.get("host", ""))
     headers["x-request-id"] = request_id
+    headers["accept-encoding"] = UPSTREAM_ACCEPT_ENCODING
     return headers
 
 
 def relay_headers(upstream: httpx.Response) -> Dict[str, str]:
-    # httpx has already decoded any content-encoding, so the body is sent as plain bytes
-    skip = HOP_BY_HOP | {"content-encoding"}
+    # httpx decodes gzip/deflate, so those bodies are sent as plain bytes without the header.
+    # Any other encoding is passed through untouched, header included, for the browser to decode.
+    encodings = [e.strip().lower() for e in upstream.headers.get("content-encoding", "").split(",") if e.strip()]
+    decoded = all(e in _DECODED_ENCODINGS for e in encodings)
+    skip = HOP_BY_HOP | ({"content-encoding"} if decoded else set())
     return {k: v for k, v in upstream.headers.items()
             if k.lower() not in skip and not k.lower().startswith(_CORS_PREFIX)}
 
