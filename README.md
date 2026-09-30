@@ -26,7 +26,7 @@ The gateway accepts `/api/v1/<resource>` for everything. `GET /gateway/routes` l
 
 | Frontend calls | Service | Forwarded as |
 |---|---|---|
-| `POST /api/v1/auth/login`, `GET /.well-known/jwks.json` | Identity | unchanged (**public**) |
+| `POST /api/v1/auth/login`, `POST /api/v1/auth/forgot-password`, `POST /api/v1/auth/reset-password`, `GET /.well-known/jwks.json` | Identity | unchanged (**public**) |
 | `/api/v1/auth/**`, `/users/**`, `/roles/**`, `/audit-logs/**` | Identity | unchanged |
 | `/api/v1/validation/users/{id}`, `/api/v1/validation/users/{id}/eligibility` | Identity | unchanged |
 | `/api/v1/validation/users/{id}/affiliation`, `/api/v1/validation/users/{id}/responsibilities` | **Directory** (matched first) | unchanged |

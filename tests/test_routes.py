@@ -64,6 +64,14 @@ def test_only_post_login_is_public(gateway, platform):
     assert gateway.get("/api/v1/auth/login").status_code == 401
 
 
+@pytest.mark.parametrize("path", ["/api/v1/auth/forgot-password", "/api/v1/auth/reset-password"])
+def test_password_reset_is_public(gateway, platform, path):
+    response = gateway.post(path, json={})
+    assert response.status_code == 200
+    assert (response.json()["service"], response.json()["path"]) == ("identity", path)
+    assert gateway.get(path).status_code == 401      # only POST is open
+
+
 def test_jwks_is_public(gateway, platform):
     response = gateway.get("/.well-known/jwks.json")
     assert response.status_code == 200
