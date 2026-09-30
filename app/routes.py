@@ -79,11 +79,10 @@ ROUTES: List[Route] = [
     *_versioned("service-request", "service-requests"),
     *_versioned("work-order", "work-orders"),
 
-    # ---- Group 8: event-service and communication-feedback-service both serve /api/v1/...
+    # ---- Group 8: event-service serves /api/v1/...; communication-feedback-service serves /api/...
     # (while a URL is missing its routes return 404, and the frontend shows demo data)
     *_same("event", "/api/v1/events", "/api/v1/registrations"),
-    *_same("communication", "/api/v1/announcements", "/api/v1/notifications", "/api/v1/feedback",
-           "/api/v1/engagement"),
+    *_versioned("communication", "announcements", "notifications", "feedback", "engagement-dashboard"),
 ]
 
 

@@ -89,6 +89,12 @@ def test_proxied_responses_carry_cors_headers(cors_gateway, platform):
     assert response.headers["access-control-allow-origin"] == FRONTEND
 
 
+def test_origin_is_not_forwarded_to_services(cors_gateway, platform):
+    # Services with their own CORS filter would refuse the frontend's origin
+    cors_gateway.get("/api/v1/auth/me", headers={**bearer(), "Origin": FRONTEND})
+    assert "origin" not in platform.requests[-1].headers
+
+
 # ---------------------------------------------------------------- configuration
 
 def test_settings_from_environment(monkeypatch):
