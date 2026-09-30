@@ -112,7 +112,7 @@ CI (`.github/workflows/ci.yml`) runs the tests, then builds the Docker image and
 
 ## Deploy
 
-See [docs/DEPLOY_RENDER.md](docs/DEPLOY_RENDER.md). What each team has to do to work behind the gateway is in [docs/INTEGRATION.md](docs/INTEGRATION.md).
+See [docs/DEPLOY_RENDER.md](docs/DEPLOY_RENDER.md). What each team has to do to work behind the gateway is in [docs/INTEGRATION.md](docs/INTEGRATION.md); the problems found in each repository, with priorities, are in [docs/INTEGRATION_ISSUES.md](docs/INTEGRATION_ISSUES.md).
 
 ## Project layout
 
