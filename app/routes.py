@@ -79,9 +79,11 @@ ROUTES: List[Route] = [
     *_versioned("service-request", "service-requests"),
     *_versioned("work-order", "work-orders"),
 
-    # ---- Group 8 (not deployed yet; the frontend shows demo data while these return 404)
-    *_same("group8", "/api/v1/events", "/api/v1/registrations", "/api/v1/announcements",
-           "/api/v1/notifications", "/api/v1/feedback", "/api/v1/engagement"),
+    # ---- Group 8: event-service and communication-feedback-service both serve /api/v1/...
+    # (while a URL is missing its routes return 404, and the frontend shows demo data)
+    *_same("event", "/api/v1/events", "/api/v1/registrations"),
+    *_same("communication", "/api/v1/announcements", "/api/v1/notifications", "/api/v1/feedback",
+           "/api/v1/engagement"),
 ]
 
 

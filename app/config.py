@@ -18,7 +18,8 @@ SERVICE_URL_VARIABLES: Dict[str, str] = {
     "reservation": "RESERVATION_SERVICE_URL",
     "service-request": "SERVICE_REQUEST_SERVICE_URL",
     "work-order": "WORK_ORDER_SERVICE_URL",
-    "group8": "GROUP8_SERVICE_URL",
+    "event": "EVENT_SERVICE_URL",                   # Group 8 event-service
+    "communication": "COMMUNICATION_SERVICE_URL",   # Group 8 communication-feedback-service
 }
 
 DEFAULT_JWT_ISSUER = "university-identity-service"

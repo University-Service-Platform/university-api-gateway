@@ -35,7 +35,8 @@ HEALTH_PATHS = {
     "reservation": "/v3/api-docs",
     "service-request": "/actuator/health",
     "work-order": "/actuator/health",
-    "group8": "/health",
+    "event": "/actuator/health",
+    "communication": "/actuator/health",
 }
 
 _REQUEST_ID = re.compile(r"[A-Za-z0-9._-]{1,128}")

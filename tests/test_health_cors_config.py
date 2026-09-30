@@ -26,7 +26,8 @@ def test_services_health_reports_each_service(gateway, platform):
     assert services["identity"]["status"] == "up"
     assert services["work-order"] == {"status": "down", "error": "ConnectError",
                                       "latency_ms": services["work-order"]["latency_ms"]}
-    assert services["group8"] == {"status": "not_configured", "env": "GROUP8_SERVICE_URL"}
+    assert services["event"] == {"status": "not_configured", "env": "EVENT_SERVICE_URL"}
+    assert services["communication"] == {"status": "not_configured", "env": "COMMUNICATION_SERVICE_URL"}
     assert body["status"] == "degraded"
     # Each service is asked on its own health path
     paths = {r.url.host.split(".")[0]: r.url.path for r in platform.requests}
