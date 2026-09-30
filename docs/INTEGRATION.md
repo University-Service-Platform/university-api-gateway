@@ -23,7 +23,8 @@ This page lists what each team must change so that its service or frontend works
 | `/api/v1/reservations/**` | Reservation (G6) | same path |
 | `/api/v1/service-requests/**` | Service request (G7) | `/api/service-requests/**` |
 | `/api/v1/work-orders/**` | Work order (G7) | `/api/work-orders/**` |
-| `/api/v1/events/**`, `/registrations/**`, `/announcements/**`, `/notifications/**`, `/feedback/**`, `/engagement/**` | Group 8 | same path |
+| `/api/v1/events/**`, `/api/v1/registrations/**` | Group 8 event-service | same path |
+| `/api/v1/announcements/**`, `/notifications/**`, `/feedback/**`, `/engagement/**` | Group 8 communication-feedback-service | same path |
 
 The unversioned paths the Group 6 and 7 frontends use today (`/api/resources`, `/api/facilities`, `/api/reservations`, `/api/service-requests`, `/api/work-orders`) are accepted as well. The live table is at `GET https://<gateway>/gateway/routes`.
 
@@ -82,9 +83,14 @@ The unversioned paths the Group 6 and 7 frontends use today (`/api/resources`, `
 
 ## Group 8: Events, Communication and Feedback
 
-The gateway already routes `/api/v1/events`, `/registrations`, `/announcements`, `/notifications`, `/feedback` and `/engagement`. Until `GROUP8_SERVICE_URL` is set, they answer `404 ROUTE_NOT_FOUND`, which the frontend's demo mode treats as "not deployed" (demo data is shown).
+Group 8 runs two services, both deployed and connected to the gateway:
 
-When your service exists, send Group 5 its URL and confirm that it serves those paths under `/api/v1`. If it uses different paths or needs more, tell us and we'll add a route. The service must verify Identity tokens (JWKS above).
+| Service | URL | Paths | Health |
+|---|---|---|---|
+| event-service | `https://eventmanagement-uni-service-management.onrender.com` | `/api/v1/events/**`, `/api/v1/registrations/**` | `/actuator/health` |
+| communication-feedback-service | `https://notification-and-feedback-uni-service.onrender.com` | `/api/v1/announcements/**`, `/notifications/**`, `/feedback/**`, `/engagement/**` | `/actuator/health` |
+
+event-service verifies Identity tokens itself (JWKS, `iss`, `aud`, `exp`) and calls Identity with the user's forwarded token: `GET /api/v1/validation/users/{id}` for role-only events, and `GET /api/v1/validation/users/{id}/eligibility?relationship=AFFILIATION&department_id=<CODE>` (or `faculty_id`) for department or faculty events. It stores department codes, and uses role-only events until the Directory Service is live.
 
 ---
 

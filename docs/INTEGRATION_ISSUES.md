@@ -81,7 +81,7 @@ This list collects the problems that stop the services and frontends from workin
 | | `PUT /users/account-status/{id}` | `PATCH /users/{id}/status` with `{"status": "ACTIVE"}` or `"INACTIVE"` | |
 | 4 | Reads `body.message`, but errors are `{"success": false, "error": {"code", "message"}}`. Successful bodies are `{"success": true, "data": …}`. | Read `body.error.message`, branch on `body.error.code`, and read successful payloads from `body.data`. | 🟡 |
 | 5 | Typo in `apiClient.ts`: `if (status === 24)`. | Should be `204`. | 🟢 |
-| 6 | Base URL for hosting. | Build with `VITE_API_BASE_URL=https://<gateway>/api/v1`. Keep `VITE_G8_DEMO_MODE=true` until Group 8 is deployed. | 🟡 |
+| 6 | Base URL for hosting. | Build with `VITE_API_BASE_URL=https://<gateway>/api/v1`. Group 8 is now deployed: set `VITE_G8_DEMO_MODE=false` in the hosted build, so outages show instead of demo data. | 🟡 |
 
 ---
 
@@ -89,8 +89,10 @@ This list collects the problems that stop the services and frontends from workin
 
 | # | Problem | Fix | Priority |
 |---|---|---|---|
-| 1 | **No backend repository exists** in the organisation. | Build and deploy the service, then send Group 5 its URL. The gateway already routes `/api/v1/events`, `/registrations`, `/announcements`, `/notifications`, `/feedback` and `/engagement`; until the URL is set they return 404, and the frontend shows demo data. | 🔴 |
-| 2 | Token verification. | Verify Identity tokens with the JWKS above. | 🔴 |
+| 1 | ~~No backend deployed~~ | **Resolved:** event-service (`https://eventmanagement-uni-service-management.onrender.com`) and communication-feedback-service (`https://notification-and-feedback-uni-service.onrender.com`) are deployed and connected to the gateway. | ✅ |
+| 2 | event-service lives in a personal repository (`IsuruDharshana/EventManagement-Uni-Service-Management-System_Backend`). | Move it into the `University-Service-Platform` organisation (Team Lead's decision). | 🟢 |
+| 3 | communication-feedback-service answers requests without a token with `403` instead of `401`. | Return `401` for a missing or invalid token, so clients know to log in again. Through the gateway this doesn't matter: the gateway answers `401` first. | 🟢 |
+| 4 | communication-feedback-service's `/v3/api-docs` returns `500 INTERNAL_SERVER_ERROR`. | Fix the OpenAPI generation, so other teams can read its contract. | 🟡 |
 
 ---
 

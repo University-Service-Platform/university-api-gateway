@@ -95,11 +95,26 @@ def test_service_without_url_is_404_so_frontend_demo_mode_applies(gateway, platf
     assert response.status_code == 404
     body = response.json()
     assert body["error"]["code"] == "ROUTE_NOT_FOUND"
-    assert "group8" in body["error"]["message"]
+    assert "event" in body["error"]["message"]
 
 
-def test_group8_is_routed_once_connected(platform):
-    with build_client(platform, service_urls={"group8": "http://group8.test"}) as client:
-        response = client.get("/api/v1/registrations/mine", headers=bearer())
+GROUP8 = {"event": "http://event.test", "communication": "http://communication.test"}
+
+
+@pytest.mark.parametrize("method,path,host", [
+    ("GET", "/api/v1/events", "event.test"),
+    ("PATCH", "/api/v1/events/12/publish", "event.test"),
+    ("POST", "/api/v1/events/12/registrations", "event.test"),
+    ("GET", "/api/v1/registrations/mine", "event.test"),
+    ("PATCH", "/api/v1/registrations/7/cancel", "event.test"),
+    ("GET", "/api/v1/announcements", "communication.test"),
+    ("GET", "/api/v1/notifications/unread", "communication.test"),
+    ("POST", "/api/v1/feedback", "communication.test"),
+    ("GET", "/api/v1/engagement/summary", "communication.test"),
+])
+def test_group8_paths_reach_the_right_service(platform, method, path, host):
+    """Group 8 runs two services: event-service and communication-feedback-service."""
+    with build_client(platform, service_urls=GROUP8) as client:
+        response = client.request(method, path, headers=bearer())
     assert response.status_code == 200
-    assert response.json()["path"] == "/api/v1/registrations/mine"
+    assert (response.json()["service"], response.json()["path"]) == (host, path)

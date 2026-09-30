@@ -16,7 +16,7 @@ Browser (shared frontend, Group 6 / 7 frontends)
 │ X-Request-ID · long timeouts for sleeping free-tier services  │
 └───┬────────────┬──────────┬────────────┬──────────┬─────────┘
     ▼            ▼          ▼            ▼          ▼
- Identity    Directory   Facility   Reservation  Service requests / Work orders   (Group 8: later)
+ Identity    Directory   Facility   Reservation  Service requests / Work orders   Events / Communication
  (Group 5)   (Group 5)   (Group 6)  (Group 6)    (Group 7)
 ```
 
@@ -35,7 +35,8 @@ The gateway accepts `/api/v1/<resource>` for everything. `GET /gateway/routes` l
 | `/api/v1/reservations/**` | Group 6 reservation | unchanged |
 | `/api/v1/service-requests/**` | Group 7 service request | `/api/service-requests/**` |
 | `/api/v1/work-orders/**` | Group 7 work order | `/api/work-orders/**` |
-| `/api/v1/events/**`, `/registrations/**`, `/announcements/**`, `/notifications/**`, `/feedback/**`, `/engagement/**` | Group 8 | unchanged |
+| `/api/v1/events/**`, `/api/v1/registrations/**` | Group 8 event-service | unchanged |
+| `/api/v1/announcements/**`, `/notifications/**`, `/feedback/**`, `/engagement/**` | Group 8 communication-feedback-service | unchanged |
 
 The Group 6 and Group 7 frontends call unversioned paths, so these are accepted too: `/api/resources/**`, `/api/facilities/**`, `/api/availability-rules/**`, `/api/service-requests/**`, `/api/work-orders/**`, and `/api/reservations/**` (forwarded as `/api/v1/reservations/**`).
 
@@ -58,7 +59,7 @@ Every error uses the platform envelope `{"success": false, "error": {"code", "me
 | 400 | `BAD_REQUEST` | Path contains `.` or `..` segments |
 | 401 | `UNAUTHORIZED` | No `Authorization: Bearer` token on a protected route |
 | 401 | `INVALID_TOKEN` | Bad signature, expired, wrong issuer or audience, not RS256 |
-| 404 | `ROUTE_NOT_FOUND` | No service owns the path, or the owning service is not connected yet (the frontend's Group 8 demo mode relies on this) |
+| 404 | `ROUTE_NOT_FOUND` | No service owns the path, or the owning service is not connected yet (the frontend's demo modes rely on this) |
 | 413 | `PAYLOAD_TOO_LARGE` | Body over `MAX_REQUEST_BODY_BYTES` |
 | 502 | `UPSTREAM_UNAVAILABLE` | The service could not be reached |
 | 503 | `AUTH_UNAVAILABLE` | Tokens can't be verified because the Identity Service is unreachable and no keys are cached |
@@ -71,7 +72,7 @@ All settings are environment variables; see [.env.example](.env.example).
 | Variable | Default | Purpose |
 |---|---|---|
 | `IDENTITY_SERVICE_URL` | – | Identity Service base URL; also where the token keys come from |
-| `DIRECTORY_SERVICE_URL`, `FACILITY_SERVICE_URL`, `RESERVATION_SERVICE_URL`, `SERVICE_REQUEST_SERVICE_URL`, `WORK_ORDER_SERVICE_URL`, `GROUP8_SERVICE_URL` | – | Each service's base URL. Empty = not connected (its routes answer 404) |
+| `DIRECTORY_SERVICE_URL`, `FACILITY_SERVICE_URL`, `RESERVATION_SERVICE_URL`, `SERVICE_REQUEST_SERVICE_URL`, `WORK_ORDER_SERVICE_URL`, `EVENT_SERVICE_URL`, `COMMUNICATION_SERVICE_URL` | – | Each service's base URL. Empty = not connected (its routes answer 404) |
 | `JWKS_URL` | `IDENTITY_SERVICE_URL/.well-known/jwks.json` | Where public keys are fetched |
 | `JWT_ISSUER` / `JWT_AUDIENCE` | `university-identity-service` / `university-services-platform` | Required token claims |
 | `JWKS_CACHE_SECONDS` | `300` | Key cache lifetime; an unknown key id triggers a refresh (at most every 10 s) |

@@ -30,7 +30,7 @@ SERVICE_URLS = {
     "reservation": "http://reservation.test",
     "service-request": "http://service-request.test",
     "work-order": "http://work-order.test",
-    # group8 deliberately not connected
+    # Group 8's two services deliberately not connected
 }
 HOST_TO_SERVICE = {url.split("//")[1]: name for name, url in SERVICE_URLS.items()}
 

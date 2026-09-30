@@ -15,7 +15,8 @@ The Blueprint ([`render.yaml`](../render.yaml)) creates one free Docker web serv
    | `RESERVATION_SERVICE_URL` | Group 6 reservation-service URL |
    | `SERVICE_REQUEST_SERVICE_URL` | Group 7 service-request-service URL |
    | `WORK_ORDER_SERVICE_URL` | Group 7 work-order-service URL |
-   | `GROUP8_SERVICE_URL` | Group 8 service URL |
+   | `EVENT_SERVICE_URL` | Group 8 event-service (already set in the Blueprint: `https://eventmanagement-uni-service-management.onrender.com`) |
+   | `COMMUNICATION_SERVICE_URL` | Group 8 communication-feedback-service (already set in the Blueprint: `https://notification-and-feedback-uni-service.onrender.com`) |
    | `CORS_ALLOWED_ORIGINS` | The shared frontend's URL, e.g. `https://university-services-frontend.onrender.com` (comma-separate several) |
 
    `IDENTITY_SERVICE_URL` is already set to `https://university-identity-service.onrender.com`.
