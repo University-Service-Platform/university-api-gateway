@@ -40,7 +40,9 @@ def raw_path(request: Request) -> str:
 
 
 def forward_headers(request: Request, request_id: str) -> Dict[str, str]:
-    headers = {k: v for k, v in request.headers.items() if k.lower() not in HOP_BY_HOP}
+    # Origin is dropped too: the gateway has already checked it, and services with their own CORS
+    # filter (Spring) refuse origins they don't list with 403 "Invalid CORS request"
+    headers = {k: v for k, v in request.headers.items() if k.lower() not in HOP_BY_HOP and k.lower() != "origin"}
     client_host = request.client.host if request.client else None
     prior = request.headers.get("x-forwarded-for")
     if client_host:

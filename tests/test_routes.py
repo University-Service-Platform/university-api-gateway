@@ -101,20 +101,22 @@ def test_service_without_url_is_404_so_frontend_demo_mode_applies(gateway, platf
 GROUP8 = {"event": "http://event.test", "communication": "http://communication.test"}
 
 
-@pytest.mark.parametrize("method,path,host", [
-    ("GET", "/api/v1/events", "event.test"),
-    ("PATCH", "/api/v1/events/12/publish", "event.test"),
-    ("POST", "/api/v1/events/12/registrations", "event.test"),
-    ("GET", "/api/v1/registrations/mine", "event.test"),
-    ("PATCH", "/api/v1/registrations/7/cancel", "event.test"),
-    ("GET", "/api/v1/announcements", "communication.test"),
-    ("GET", "/api/v1/notifications/unread", "communication.test"),
-    ("POST", "/api/v1/feedback", "communication.test"),
-    ("GET", "/api/v1/engagement/summary", "communication.test"),
+@pytest.mark.parametrize("method,path,host,upstream", [
+    ("GET", "/api/v1/events", "event.test", "/api/v1/events"),
+    ("PATCH", "/api/v1/events/12/publish", "event.test", "/api/v1/events/12/publish"),
+    ("POST", "/api/v1/events/12/registrations", "event.test", "/api/v1/events/12/registrations"),
+    ("GET", "/api/v1/registrations/mine", "event.test", "/api/v1/registrations/mine"),
+    ("PATCH", "/api/v1/registrations/7/cancel", "event.test", "/api/v1/registrations/7/cancel"),
+    # communication-feedback-service serves /api/... without the version
+    ("GET", "/api/v1/announcements", "communication.test", "/api/announcements"),
+    ("PATCH", "/api/v1/notifications/5/read", "communication.test", "/api/notifications/5/read"),
+    ("GET", "/api/v1/feedback/forms", "communication.test", "/api/feedback/forms"),
+    ("GET", "/api/v1/engagement-dashboard/summary", "communication.test", "/api/engagement-dashboard/summary"),
+    ("GET", "/api/announcements", "communication.test", "/api/announcements"),
 ])
-def test_group8_paths_reach_the_right_service(platform, method, path, host):
+def test_group8_paths_reach_the_right_service(platform, method, path, host, upstream):
     """Group 8 runs two services: event-service and communication-feedback-service."""
     with build_client(platform, service_urls=GROUP8) as client:
         response = client.request(method, path, headers=bearer())
     assert response.status_code == 200
-    assert (response.json()["service"], response.json()["path"]) == (host, path)
+    assert (response.json()["service"], response.json()["path"]) == (host, upstream)

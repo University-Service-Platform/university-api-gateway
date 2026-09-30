@@ -36,7 +36,7 @@ The gateway accepts `/api/v1/<resource>` for everything. `GET /gateway/routes` l
 | `/api/v1/service-requests/**` | Group 7 service request | `/api/service-requests/**` |
 | `/api/v1/work-orders/**` | Group 7 work order | `/api/work-orders/**` |
 | `/api/v1/events/**`, `/api/v1/registrations/**` | Group 8 event-service | unchanged |
-| `/api/v1/announcements/**`, `/notifications/**`, `/feedback/**`, `/engagement/**` | Group 8 communication-feedback-service | unchanged |
+| `/api/v1/announcements/**`, `/notifications/**`, `/feedback/**`, `/engagement-dashboard/**` | Group 8 communication-feedback-service | `/api/<resource>/**` |
 
 The Group 6 and Group 7 frontends call unversioned paths, so these are accepted too: `/api/resources/**`, `/api/facilities/**`, `/api/availability-rules/**`, `/api/service-requests/**`, `/api/work-orders/**`, and `/api/reservations/**` (forwarded as `/api/v1/reservations/**`).
 
