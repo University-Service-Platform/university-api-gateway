@@ -47,8 +47,25 @@ Not exposed: Group 7's `/api/dev/**` token endpoint, H2 consoles, actuator endpo
 | Endpoint | Purpose |
 |---|---|
 | `GET /health` | The gateway itself |
-| `GET /health/services` | Checks every connected service. It also **wakes sleeping free-tier services**, so open it a few minutes before a demo |
+| `GET /health/services` | Checks every connected service (it does **not** wake sleeping ones; see below) |
 | `GET /gateway/routes` | The routing table and which services are connected |
+| `GET /gateway/wake-targets` | The services' public health addresses, which the frontend calls from the browser to wake them |
+
+### Sleeping free-tier services
+
+Free Render services sleep after ~15 idle minutes, and a request from the gateway (inside Render) does
+not wake them: Render answers it at once with its own 502 page. A request from outside Render does.
+So:
+
+- **The frontend wakes them.** On load it calls every address from `/gateway/wake-targets` from the
+  visitor's browser.
+- **The gateway waits for them.** When Render answers with its 502/503 page (HTML, so the request never
+  reached the service), the gateway sends the request again, pausing 2, 3, 5, 8, 10 and 12 seconds,
+  for up to `UPSTREAM_WAKE_WAIT_SECONDS`. Then it answers `503 SERVICE_STARTING`. The services' own
+  errors (JSON) and timeouts are never resent.
+- **Before a demo**, run **Actions → Keep services awake → Run workflow** and choose how many hours;
+  it calls every service every 4 minutes from GitHub. It isn't scheduled, because keeping the
+  services awake all month would use up the free plan's instance hours in about ten days.
 
 ## Errors added by the gateway
 
@@ -62,6 +79,7 @@ Every error uses the platform envelope `{"success": false, "error": {"code", "me
 | 404 | `ROUTE_NOT_FOUND` | No service owns the path, or the owning service is not connected yet (the frontend's demo modes rely on this) |
 | 413 | `PAYLOAD_TOO_LARGE` | Body over `MAX_REQUEST_BODY_BYTES` |
 | 502 | `UPSTREAM_UNAVAILABLE` | The service could not be reached |
+| 503 | `SERVICE_STARTING` | The service was still asleep or starting after `UPSTREAM_WAKE_WAIT_SECONDS` |
 | 503 | `AUTH_UNAVAILABLE` | Tokens can't be verified because the Identity Service is unreachable and no keys are cached |
 | 504 | `UPSTREAM_TIMEOUT` | The service did not answer within `UPSTREAM_READ_TIMEOUT_SECONDS` |
 
@@ -78,6 +96,7 @@ All settings are environment variables; see [.env.example](.env.example).
 | `JWKS_CACHE_SECONDS` | `300` | Key cache lifetime; an unknown key id triggers a refresh (at most every 10 s) |
 | `CORS_ALLOWED_ORIGINS` | – | Comma-separated frontend origins; `*` is refused in production |
 | `UPSTREAM_CONNECT_TIMEOUT_SECONDS` / `UPSTREAM_READ_TIMEOUT_SECONDS` | `10` / `90` | Long enough for a sleeping Render service to wake |
+| `UPSTREAM_WAKE_WAIT_SECONDS` | `40` | How long to keep resending a request while Render reports the service as not running; `0` turns it off. Keep it below the frontend's 60-second request timeout |
 | `MAX_REQUEST_BODY_BYTES` | `10485760` | Request body limit |
 | `ENVIRONMENT` | `development` | `production` requires token verification to be configured |
 

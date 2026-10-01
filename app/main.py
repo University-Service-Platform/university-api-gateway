@@ -84,7 +84,8 @@ def create_app(settings: Optional[Settings] = None,
     @app.get("/", include_in_schema=False)
     async def root():
         return {"service": "api-gateway", "version": VERSION, "health": "/health",
-                "services": "/health/services", "routes": "/gateway/routes"}
+                "services": "/health/services", "routes": "/gateway/routes",
+                "wake_targets": "/gateway/wake-targets"}
 
     @app.get("/health")
     async def health():
@@ -113,6 +114,19 @@ def create_app(settings: Optional[Settings] = None,
         configured = [r for r in results.values() if r["status"] != "not_configured"]
         overall = "healthy" if configured and all(r["status"] == "up" for r in configured) else "degraded"
         return {"status": overall, "timestamp": utc_timestamp(), "services": results}
+
+    @app.get("/gateway/wake-targets")
+    async def wake_targets():
+        """
+        Public health addresses of the services, for the frontend to call from the browser when it
+        loads. Free Render services sleep when idle, and calls from the gateway (inside Render) do
+        not wake them; a visitor's browser does. Only public https addresses are listed.
+        """
+        return {"targets": [
+            {"service": service, "url": base + HEALTH_PATHS[service]}
+            for service, base in settings.service_urls.items()
+            if base.startswith("https://") and service in HEALTH_PATHS
+        ]}
 
     @app.get("/gateway/routes")
     async def route_table():
@@ -143,7 +157,8 @@ def create_app(settings: Optional[Settings] = None,
         if not route.public and request.method != "OPTIONS":
             await request.app.state.verifier.verify(request.headers.get("authorization"))
         return await forward(request.app.state.client, request, path, route, base_url,
-                             request.state.request_id, settings.max_request_body_bytes)
+                             request.state.request_id, settings.max_request_body_bytes,
+                             settings.upstream_wake_wait_seconds)
 
     # CORS last, so it wraps everything (errors included)
     if settings.cors_allowed_origins:
