@@ -59,8 +59,14 @@ def create_app(settings: Optional[Settings] = None,
                                               settings.jwks_cache_seconds, client)
             yield
 
+    # Swagger UI documents the gateway's own endpoints. Registered here, before the catch-all
+    # proxy, so /docs, /redoc and /openapi.json are answered by the gateway and not forwarded.
+    # Each service's API is documented by that service (its own /docs).
     app = FastAPI(title="University Services API Gateway", version=VERSION, lifespan=lifespan,
-                  docs_url=None, redoc_url=None, openapi_url=None)
+                  description="Single entry point for the shared frontend. Calls to /api/v1/... are "
+                              "checked (Identity token) and forwarded to the owning service; "
+                              "GET /gateway/routes lists the routing table.",
+                  docs_url="/docs", redoc_url="/redoc", openapi_url="/openapi.json")
     app.state.settings = settings
 
     @app.exception_handler(GatewayError)
@@ -83,7 +89,7 @@ def create_app(settings: Optional[Settings] = None,
 
     @app.get("/", include_in_schema=False)
     async def root():
-        return {"service": "api-gateway", "version": VERSION, "health": "/health",
+        return {"service": "api-gateway", "version": VERSION, "docs": "/docs", "health": "/health",
                 "services": "/health/services", "routes": "/gateway/routes",
                 "wake_targets": "/gateway/wake-targets"}
 

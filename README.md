@@ -50,6 +50,7 @@ Not exposed: Group 7's `/api/dev/**` token endpoint, H2 consoles, actuator endpo
 | `GET /health/services` | Checks every connected service (it does **not** wake sleeping ones; see below) |
 | `GET /gateway/routes` | The routing table and which services are connected |
 | `GET /gateway/wake-targets` | The services' public health addresses, which the frontend calls from the browser to wake them |
+| `GET /docs` · `/redoc` · `/openapi.json` | Swagger UI, ReDoc and OpenAPI for the endpoints above. Each service's own API is in that service's `/docs` |
 
 ### Sleeping free-tier services
 

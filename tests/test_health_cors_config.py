@@ -15,6 +15,18 @@ def test_health(gateway):
     assert body == {"status": "healthy", "service": "api-gateway", "version": "1.0.0"}
 
 
+def test_swagger_documents_the_gateway_endpoints(gateway):
+    """/docs and /openapi.json are the gateway's own, not forwarded to a service."""
+    docs = gateway.get("/docs")
+    assert docs.status_code == 200
+    assert "/openapi.json" in docs.text
+    paths = gateway.get("/openapi.json").json()["paths"]
+    assert {"/health", "/health/services", "/gateway/routes", "/gateway/wake-targets"} <= set(paths)
+    # The catch-all proxy stays out of the schema
+    assert "/{full_path}" not in paths
+    assert gateway.get("/redoc").status_code == 200
+
+
 def test_services_health_reports_each_service(gateway, platform):
     def down(request):
         raise httpx.ConnectError("refused")
