@@ -1,0 +1,39 @@
+# Keeps the free Render services awake for a demo or a testing session.
+#
+# Free services sleep after ~15 idle minutes, and calls from inside Render (the gateway) don't wake
+# them. This job runs outside Render and calls every service's health address every 4 minutes.
+# Start it by hand (Actions -> Keep services awake -> Run workflow) shortly before you need the
+# platform; it is not scheduled, because keeping services awake around the clock would use up the
+# free plan's monthly instance hours in about ten days.
+name: Keep services awake
+
+on:
+  workflow_dispatch:
+    inputs:
+      hours:
+        description: "How many hours to keep everything awake (1-6)"
+        required: true
+        default: "2"
+        type: choice
+        options: ["1", "2", "3", "4", "5", "6"]
+
+jobs:
+  keep-awake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 370
+    env:
+      GATEWAY: https://university-api-gateway.onrender.com
+      HOURS: ${{ inputs.hours }}
+    steps:
+      - name: Call every service every 4 minutes
+        run: |
+          end=$(( $(date +%s) + HOURS * 3600 ))
+          while [ "$(date +%s)" -lt "$end" ]; do
+            # The gateway lists the services' public health addresses
+            targets=$(curl -fsS --max-time 120 "$GATEWAY/gateway/wake-targets" | jq -r '.targets[].url' || true)
+            for url in "$GATEWAY/health" $targets; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 "$url" || echo "---")
+              echo "$(date -u +%H:%M) $code $url"
+            done
+            sleep 240
+          done

@@ -64,6 +64,9 @@ class Settings:
     # Free hosting (e.g. Render) sleeps idle services; waking one takes about a minute
     upstream_connect_timeout_seconds: float = 10.0
     upstream_read_timeout_seconds: float = 90.0
+    # How long to keep retrying a service that Render reports as not running (asleep on the free
+    # plan). 0 disables the retries; the environment default is 40 seconds.
+    upstream_wake_wait_seconds: float = 0.0
     max_request_body_bytes: int = 10 * 1024 * 1024
     log_level: str = "INFO"
 
@@ -100,6 +103,7 @@ def load_settings() -> Settings:
         cors_allowed_origins=_env_list("CORS_ALLOWED_ORIGINS"),
         upstream_connect_timeout_seconds=_env_float("UPSTREAM_CONNECT_TIMEOUT_SECONDS", 10.0),
         upstream_read_timeout_seconds=_env_float("UPSTREAM_READ_TIMEOUT_SECONDS", 90.0),
+        upstream_wake_wait_seconds=_env_float("UPSTREAM_WAKE_WAIT_SECONDS", 40.0),
         max_request_body_bytes=_env_int("MAX_REQUEST_BODY_BYTES", 10 * 1024 * 1024),
         log_level=_env("LOG_LEVEL", "INFO"),
     )
